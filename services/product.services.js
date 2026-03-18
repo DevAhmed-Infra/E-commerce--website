@@ -10,9 +10,11 @@ const getAllProducts = asyncHandler(async (req, res, next) => {
   const limit = req.query.limit * 1 || 5;
   const skip = (page - 1) * limit;
 
-  const products = await Product.find({}).skip(skip).limit(limit);
-
-  await products.populate(['category', 'subcategory']);
+  const products = await Product.find({})
+    .skip(skip)
+    .limit(limit)
+    .populate('category')
+    .populate('subcategory');
 
   res.status(200).json({
     status: httpStatus.SUCCESS,
@@ -39,14 +41,14 @@ const getProductById = asyncHandler(async (req, res, next) => {
 
 const createProduct = asyncHandler(async (req, res, next) => {
   const { title, description, price, quantity, categoryId, subcategoryId } = req.body;
-  if (!title || !description || !price || !quantity || !categoryId || !subcategoryId) {
-    return next(
-      new AppError(
-        'All fields must be provided : title, description, price, quantity, categoryId , subcategoryId ',
-        400
-      )
-    );
-  }
+  // if (!title || !description || !price || !quantity || !categoryId || !subcategoryId) {
+  //   return next(
+  //     new AppError(
+  //       'All fields must be provided : title, description, price, quantity, categoryId , subcategoryId ',
+  //       400
+  //     )
+  //   );
+  // }
   const product = await Product.create({
     title: title,
     slug: slugify(title),
@@ -70,26 +72,27 @@ const createProduct = asyncHandler(async (req, res, next) => {
 
 const updateProduct = asyncHandler(async (req, res, next) => {
   const { id } = req.params;
-  const { title, description, price, quantity, categoryId, subcategoryId } = req.body;
-  if (!title || !description || !price || !quantity || !categoryId || !subcategoryId) {
-    return next(
-      new AppError(
-        'All fields must be provided : title, description, price, quantity, categoryId , subcategoryId ',
-        400
-      )
-    );
-  }
+  // const { title, description, price, quantity, categoryId, subcategoryId } = req.body;
+  // if (!title || !description || !price || !quantity || !categoryId || !subcategoryId) {
+  //   return next(
+  //     new AppError(
+  //       'All fields must be provided : title, description, price, quantity, categoryId , subcategoryId ',
+  //       400
+  //     )
+  //   );
+  // }
 
   const product = await Product.findByIdAndUpdate(
     id,
     {
-      title: title,
-      slug: slugify(title),
-      description: description,
-      price: price,
-      quantity: quantity,
-      category: categoryId,
-      subcategory: subcategoryId
+      // title: title,
+      // slug: slugify(title),
+      // description: description,
+      // price: price,
+      // quantity: quantity,
+      // category: categoryId,
+      // subcategory: subcategoryId
+      ...req.body
     },
     {
       new: true,

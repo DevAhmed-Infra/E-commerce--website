@@ -32,7 +32,7 @@ const getCategoryById = asyncHandler(async (req, res, next) => {
 });
 
 const createCategory = asyncHandler(async (req, res, next) => {
-    const {name} = req.body.name;
+    const {name} = req.body;
 
     if (!name) {
         return next(new AppError('Category name is required', 400));

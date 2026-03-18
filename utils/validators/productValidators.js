@@ -2,6 +2,8 @@ const { check, body } = require('express-validator');
 const slugify = require('slugify');
 
 const validatorMiddleware = require('../../middlewares/validationMiddleware');
+const Category = require('../../models/category.model');
+const Subcategory = require('../../models/subcategory.model');
 
 const getProductValidator = [
   check('id').isMongoId().withMessage('Invalid product id format'),
@@ -25,11 +27,15 @@ const createProductValidator = [
     .notEmpty()
     .withMessage('Product description is required')
     .isLength({ min: 20 })
-    .withMessage('Description must be at least 20 characters'),
+    .withMessage('Description must be at least 20 characters')
+    .isLength({ max: 2000 })
+    .withMessage('Description must not exceed 2000 characters'),
 
   check('price')
     .notEmpty()
     .withMessage('Product price is required')
+    .isLength({ max: 32 })
+    .withMessage('Price is too long')
     .isNumeric()
     .withMessage('Price must be a valid number')
     .custom((val) => {
@@ -55,9 +61,57 @@ const createProductValidator = [
     .notEmpty()
     .withMessage('Category ID is required')
     .isMongoId()
-    .withMessage('Invalid category id format'),
+    .withMessage('Invalid category id format')
+    .custom((categoryId) =>
+      Category.findById(categoryId).then((category) => {
+        if (!category) {
+          return Promise.reject(new Error(`No category found for this id: ${categoryId}`));
+        }
+      })
+    ),
 
-  body('subcategoryId').optional().isMongoId().withMessage('Invalid subcategory id format'),
+  body('subcategoryId')
+    .optional()
+    .isArray()
+    .withMessage('Subcategories must be an array')
+    .custom((subcategoryIds) => {
+      if (!Array.isArray(subcategoryIds) || subcategoryIds.length === 0) return true;
+
+      // Validate all items are valid MongoDB ObjectIds
+      const invalidIds = subcategoryIds.filter((id) => !/^[0-9a-fA-F]{24}$/.test(id.toString()));
+      if (invalidIds.length > 0) {
+        throw new Error(`Invalid subcategory ID format: ${invalidIds.join(', ')}`);
+      }
+
+      // Check for duplicates
+      const uniqueIds = new Set(subcategoryIds);
+      if (uniqueIds.size !== subcategoryIds.length) {
+        throw new Error('Subcategory IDs must be unique (no duplicates)');
+      }
+
+      return true;
+    })
+    .custom(async (subcategoryIds, { req }) => {
+      if (!Array.isArray(subcategoryIds) || subcategoryIds.length === 0) return true;
+
+      const categoryId = req.body.categoryId;
+      if (!categoryId) return true; // Will be caught by categoryId validator
+
+      // Single optimized query: Get subcategories that belong to the specified category
+      const foundSubcategories = await Subcategory.find({
+        _id: { $in: subcategoryIds },
+        category: categoryId
+      });
+
+      // Check if all requested subcategories exist and belong to the category
+      if (foundSubcategories.length !== subcategoryIds.length) {
+        const foundIds = foundSubcategories.map((sub) => sub._id.toString());
+        const notFound = subcategoryIds.filter((id) => !foundIds.includes(id.toString()));
+        throw new Error(
+          `Subcategories not found or do not belong to selected category: ${notFound.join(', ')}`
+        );
+      }
+    }),
 
   body('brand').optional().isMongoId().withMessage('Invalid brand id format'),
 
@@ -162,12 +216,16 @@ const updateProductValidator = [
   body('description')
     .optional()
     .isLength({ min: 20 })
-    .withMessage('Description must be at least 20 characters'),
+    .withMessage('Description must be at least 20 characters')
+    .isLength({ max: 2000 })
+    .withMessage('Description must not exceed 2000 characters'),
 
   body('price')
     .optional()
     .isNumeric()
     .withMessage('Price must be a valid number')
+    .isLength({ max: 32 })
+    .withMessage('Price is too long')
     .custom((val) => {
       if (val && parseFloat(val) <= 0) {
         throw new Error('Price must be greater than 0');
@@ -246,17 +304,6 @@ const updateProductValidator = [
         if (rating < 1 || rating > 5) {
           throw new Error('Rating average must be between 1 and 5');
         }
-      }
-      return true;
-    }),
-
-  body('slug')
-    .optional()
-    .isString()
-    .withMessage('Slug must be a string')
-    .custom((val) => {
-      if (val && !/^[a-z0-9]+(?:-[a-z0-9]+)*$/.test(val)) {
-        throw new Error('Slug must contain only lowercase letters, numbers, and hyphens');
       }
       return true;
     }),
