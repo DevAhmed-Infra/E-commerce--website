@@ -4,17 +4,54 @@ const slugify = require('slugify');
 const Product = require('../models/product.model');
 const AppError = require('../utils/appError');
 const httpStatus = require('../utils/httpStatus');
+const logger = require('../utils/logger');
 
 const getAllProducts = asyncHandler(async (req, res, next) => {
+  const queryStringObj = { ...req.query };
+  const excludedFields = ['page', 'sort', 'limit', 'fields'];
+  excludedFields.forEach((excludedField) => {
+    delete queryStringObj[excludedField];
+  });
+
+  let queryStr = JSON.stringify(queryStringObj);
+  queryStr = queryStr.replace(/\b(gte|gt|lte|lt)\b/g, (match) => `$${match}`);
+
   const page = req.query.page * 1 || 1;
   const limit = req.query.limit * 1 || 5;
   const skip = (page - 1) * limit;
 
-  const products = await Product.find({})
+  let mongoQuery = Product.find(JSON.parse(queryStr))
     .skip(skip)
     .limit(limit)
     .populate('category')
     .populate('subcategory');
+
+  if (req.query.sort) {
+    const sortBy = req.query.sort.split(',').join(' ');
+    mongoQuery = mongoQuery.sort(sortBy);
+  } else {
+    mongoQuery = mongoQuery.sort('-createdAt');
+  }
+
+  if (req.query.fields) {
+    const fields = req.query.fields.split(',').join(' ');
+    mongoQuery = mongoQuery.select(fields);
+  } else {
+    mongoQuery = mongoQuery.select('-__v');
+  }
+
+  //searching feature
+
+  if (req.query.keyword) {
+    const query = {};
+    query.$or = [
+      { title: { $regex: req.query.keyword, $options: 'i' } },
+      { description: { $regex: req.query.keyword, $options: 'i' } }
+    ];
+    mongoQuery = mongoQuery.find(query);
+  }
+
+  const products = await mongoQuery;
 
   res.status(200).json({
     status: httpStatus.SUCCESS,
