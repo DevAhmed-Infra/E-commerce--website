@@ -43,15 +43,21 @@ class ApiFeatures {
     return this;
   }
 
-  search() {
+  search(modelName) {
     if (this.queryString.keyword) {
       // Escape the keyword to prevent ReDoS attacks
       const escapedKeyword = this.escapeRegex(this.queryString.keyword);
-      const query = {};
-      query.$or = [
-        { title: { $regex: escapedKeyword, $options: 'i' } },
-        { description: { $regex: escapedKeyword, $options: 'i' } }
-      ];
+      let query = {};
+
+      if (modelName === 'Products') {
+        query.$or = [
+          { title: { $regex: escapedKeyword, $options: 'i' } },
+          { description: { $regex: escapedKeyword, $options: 'i' } }
+        ];
+      } else {
+        query.$or = [{ name: { $regex: escapedKeyword, $options: 'i' } }];
+      }
+
       this.mongoQuery = this.mongoQuery.where(query);
     }
     return this;
@@ -59,7 +65,7 @@ class ApiFeatures {
 
   async paginate() {
     const page = this.queryString.page * 1 || 1;
-    const limit = Math.min(this.queryString.limit * 1 || 50, 100); 
+    const limit = Math.min(this.queryString.limit * 1 || 50, 100);
     const skip = (page - 1) * limit;
     const endIndex = page * limit;
 

@@ -1,13 +1,11 @@
-const asyncHandler = require('express-async-handler');
-const slugify = require('slugify');
 
-const httpStatus = require('../utils/httpStatus');
 const SubCategory = require('../models/subcategory.model');
 const Category = require('../models/category.model');
 const AppError = require('../utils/appError');
-const ApiFeatures = require('../utils/apiFeatures');
+const { getOne, getAll, updateOne, deleteOne, createOne } = require('./factory');
+const { addSlugToSubCategory } = require('../utils/slugHelpers');
 
-// for Nested Route
+// Middleware for nested route
 const createFilterObj = (req, res, next) => {
   let filterObj = {};
   if (req.params.categoryId) {
@@ -17,9 +15,11 @@ const createFilterObj = (req, res, next) => {
   next();
 };
 
-const createSubCategory = asyncHandler(async (req, res, next) => {
-  // Nested Route
-  if (!req.body.categoryId) req.body.categoryId = req.params.categoryId;
+const validateSubCategoryCreate = async (req, next) => {
+  if (!req.body.categoryId) {
+    req.body.categoryId = req.params.categoryId;
+  }
+
   const { name, categoryId } = req.body;
 
   if (!name || !categoryId) {
@@ -27,102 +27,44 @@ const createSubCategory = asyncHandler(async (req, res, next) => {
   }
 
   const category = await Category.findById(categoryId);
-
   if (!category) {
     return next(new AppError('Category not found', 404));
   }
+};
 
-  const subcategory = await SubCategory.create({
-    name,
-    slug: slugify(name),
-    category: categoryId
-  });
+const prepareSubCategoryData = (data) => {
+  return {
+    name: data.name,
+    slug: addSlugToSubCategory({ name: data.name }).slug,
+    category: data.categoryId
+  };
+};
 
-  await subcategory.populate('category');
-
-  res.status(201).json({
-    status: httpStatus.SUCCESS,
-    data: subcategory
-  });
+const createSubCategory = createOne(SubCategory, {
+  preValidate: validateSubCategoryCreate,
+  preProcess: prepareSubCategoryData,
+  populate: 'category'
 });
 
-const getSubCategoryById = asyncHandler(async (req, res, next) => {
-  const { id } = req.params;
-
-  const subcategory = await SubCategory.findById(id);
-
-  if (!subcategory) {
-    return next(new AppError('Subcategory not found', 404));
-  }
-
-  res.status(200).json({
-    status: httpStatus.SUCCESS,
-    data: subcategory
-  });
+const getSubCategoryById = getOne(SubCategory, {
+  modelName: 'Subcategory',
+  populate: 'category'
 });
 
-const getAllSubCategories = asyncHandler(async (req, res, next) => {
-  const queryWithFilter = req.filterObj ? SubCategory.find(req.filterObj) : SubCategory.find();
-  const apiFeatures = new ApiFeatures(queryWithFilter, req.query)
-    .filter()
-    .search()
-    .limitFields()
-    .sort();
-
-  await apiFeatures.paginate();
-
-  const { mongoQuery, paginationResult } = apiFeatures;
-  const subCategories = await mongoQuery.populate('category');
-
-  res.status(200).json({
-    status: httpStatus.SUCCESS,
-    paginationResult,
-    data: subCategories
-  });
+const getAllSubCategories = getAll(SubCategory, {
+  modelName: 'Subcategory',
+  populate: 'category'
 });
 
-const updateSubCategory = asyncHandler(async (req, res, next) => {
-  const { id } = req.params;
-
-  const subCategory = await SubCategory.findByIdAndUpdate(
-    id,
-    {
-      name: req.body.name,
-      slug: slugify(req.body.name),
-      category: req.body.category
-    },
-    {
-      new: true,
-      runValidators: true
-    }
-  );
-  if (!subCategory) {
-    return next(new AppError('Subcategory not found', 404));
-  }
-
-  await subCategory.populate('category');
-
-  res.status(200).json({
-    status: httpStatus.SUCCESS,
-    data: subCategory
-  });
+const updateSubCategory = updateOne(SubCategory, {
+  modelName: 'Subcategory',
+  preProcess: addSlugToSubCategory,
+  populate: 'category'
 });
 
-const deleteSubCategory = asyncHandler(async (req, res, next) => {
-  const { id } = req.params;
-  const subCategory = await SubCategory.findByIdAndDelete(id);
-  if (!subCategory) {
-    return next(new AppError('Subcategory not found', 404));
-  }
-
-  res.status(204).json({
-    status: httpStatus.SUCCESS,
-    data: null
-  });
+const deleteSubCategory = deleteOne(SubCategory, {
+  modelName: 'Subcategory'
 });
-
-// Nested Route
-// GET /CategoryId/Subcategories // Category → Parent (Router.use)   // SubCategory → Child (mergeparam : true)
 
 module.exports = {
   createSubCategory,
