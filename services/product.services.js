@@ -5,6 +5,7 @@ const Product = require('../models/product.model');
 const AppError = require('../utils/appError');
 const httpStatus = require('../utils/httpStatus');
 const logger = require('../utils/logger');
+const ApiFeatures = require('../utils/apiFeatures');
 
 const getAllProducts = asyncHandler(async (req, res, next) => {
   // const queryStringObj = { ...req.query };
@@ -16,15 +17,15 @@ const getAllProducts = asyncHandler(async (req, res, next) => {
   // let queryStr = JSON.stringify(queryStringObj);
   // queryStr = queryStr.replace(/\b(gte|gt|lte|lt)\b/g, (match) => `$${match}`);
 
-  const page = req.query.page * 1 || 1;
-  const limit = req.query.limit * 1 || 5;
-  const skip = (page - 1) * limit;
-
-  let mongoQuery = Product.find(JSON.parse(queryStr))
-    .skip(skip)
-    .limit(limit)
-    .populate('category')
-    .populate('subcategory');
+  // const page = req.query.page * 1 || 1;
+  // const limit = req.query.limit * 1 || 5;
+  // const skip = (page - 1) * limit;
+  //
+  // let mongoQuery = Product.find(JSON.parse(queryStr))
+  //   .skip(skip)
+  //   .limit(limit)
+  //   .populate('category')
+  //   .populate('subcategory');
 
   // if (req.query.sort) {
   //   const sortBy = req.query.sort.split(',').join(' ');
@@ -51,12 +52,22 @@ const getAllProducts = asyncHandler(async (req, res, next) => {
   //   mongoQuery = mongoQuery.find(query);
   // }
 
-  const products = await mongoQuery;
+  // const products = await mongoQuery;
+
+  const apiFeatures = new ApiFeatures(Product.find(), req.query)
+    .filter()
+    .search()
+    .limitFields()
+    .sort();
+
+  await apiFeatures.paginate();
+
+  const { mongoQuery, paginationResult } = apiFeatures;
+  const products = await mongoQuery.populate('category').populate('subcategory');
 
   res.status(200).json({
     status: httpStatus.SUCCESS,
-    results: products.length,
-    page: page,
+    paginationResult,
     data: products
   });
 });
