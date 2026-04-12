@@ -6,7 +6,8 @@ const {
   getCategories,
   getCategoryById,
   updateCategory,
-  deleteCategory
+  deleteCategory,
+  uploadCategoryImage
 } = require('../services/category.services');
 const {
   getCategoryValidator,
@@ -14,8 +15,6 @@ const {
   updateCategoryValidator,
   deleteCategoryValidator
 } = require('../utils/validators/categoryValidators');
-
-const upload = multer({ dest: 'uploads/categories' });
 
 const subCategoryRouter = require('./subcategory.router');
 
@@ -26,7 +25,7 @@ router.use('/:categoryId/subcategories', subCategoryRouter);
 router
   .route('/')
   .get(getCategories)
-  .post(upload.single('image'), createCategoryValidator, createCategory);
+  .post(uploadCategoryImage, createCategoryValidator, createCategory);
 
 router
   .route('/:id')
