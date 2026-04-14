@@ -74,8 +74,17 @@ const productSchema = new mongoose.Schema(
 );
 
 const setImageURL = (doc) => {
-  if (doc.image) {
-    doc.image = `${process.env.BASE_URL}/products/${doc.image}`;
+  if (doc.imageCover) {
+    const imageURL = `${process.env.BASE_URL}/products/${doc.imageCover}`;
+    doc.imageCover = imageURL;
+  }
+  if (doc.images) {
+    const imageList = [];
+    doc.images.forEach((image) => {
+      const imageURL = `${process.env.BASE_URL}/products/${image}`;
+      imageList.push(imageURL);
+    });
+    doc.images = imageList;
   }
 };
 
