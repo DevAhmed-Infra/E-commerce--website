@@ -1,21 +1,29 @@
 const Category = require('../models/category.model');
 const { getOne, getAll, updateOne, deleteOne, createOne } = require('./factory');
 const { addSlugToBasicModel } = require('../utils/slugHelpers');
+const AppError = require('../utils/appError');
+
 const multer = require('multer');
 const { v4: uuidv4 } = require('uuid');
-const AppError = require('../utils/appError');
-//Disk Storage Engine
+const sharp = require('sharp');
+const asyncHandler = require('express-async-handler');
 
-const storage = multer.diskStorage({
-  destination: function (req, file, cb) {
-    cb(null, './uploads/categories');
-  },
-  filename: function (req, file, cb) {
-    const ext = file.mimetype.split('/')[1];
-    const fileName = `category-${uuidv4()}-${Date.now()}.${ext}`;
-    cb(null, fileName);
-  }
-});
+//Disk Storage Engine  → returns a file
+// const multerDistkStorage = multer.diskStorage({
+//   destination: function (req, file, cb) {
+//     cb(null, './uploads/categories');
+//   },
+//   filename: function (req, file, cb) {
+//     const ext = file.mimetype.split('/')[1];
+//     const fileName = `category-${uuidv4()}-${Date.now()}.${ext}`;
+//     cb(null, fileName);
+//   }
+// });
+// const upload = multer({ storage: multerDistkStorage, fileFilter: multerFilter });
+
+// Memory Storage → returns a buffer (sharp takes buffer files)
+
+const multerMemoryStorage = multer.memoryStorage();
 
 const multerFilter = function (req, file, cb) {
   if (file.mimetype.startsWith('image')) {
@@ -25,7 +33,19 @@ const multerFilter = function (req, file, cb) {
   }
 };
 
-const upload = multer({ storage: storage, fileFilter: multerFilter });
+const resizeImage = asyncHandler(async (req, res, next) => {
+  const fileName = `category-${uuidv4()}-${Date.now()}.jpeg`;
+  await sharp(req.file.buffer)
+    .resize(600, 600)
+    .toFormat('jpeg')
+    .jpeg({ quality: 100 })
+    .toFile(`uploads/categories/${fileName}`); // Removed leading slash
+
+  req.body.image = fileName;
+  next();
+});
+
+const upload = multer({ storage: multerMemoryStorage, fileFilter: multerFilter });
 
 const uploadCategoryImage = upload.single('image');
 
@@ -56,5 +76,6 @@ module.exports = {
   getCategoryById,
   updateCategory,
   deleteCategory,
-  uploadCategoryImage
+  uploadCategoryImage,
+  resizeImage
 };
