@@ -1,12 +1,11 @@
 const sharp = require('sharp');
 const { v4: uuidv4 } = require('uuid');
 const asyncHandler = require('express-async-handler');
-const multer = require('multer');
 
 const Product = require('../models/product.model');
 const { getOne, getAll, createOne, updateOne, deleteOne } = require('./factory');
 const { addSlug } = require('../utils/slugHelpers');
-const AppError = require('../utils/appError');
+const { uploadMixOfImages } = require('../middlewares/uploadImage');
 
 const processProductData = (data) => {
   if (!data) return data;
@@ -19,19 +18,19 @@ const processProductData = (data) => {
   return addSlug(data, 'title');
 };
 
-const multerMemoryStorage = multer.memoryStorage();
+// const multerMemoryStorage = multer.memoryStorage();
+//
+// const multerFilter = function (req, file, cb) {
+//   if (file.mimetype.startsWith('image')) {
+//     cb(null, true);
+//   } else {
+//     cb(new AppError('Only image types are allowed', 400), false);
+//   }
+// };
+//
+// const upload = multer({ storage: multerMemoryStorage, fileFilter: multerFilter });
 
-const multerFilter = function (req, file, cb) {
-  if (file.mimetype.startsWith('image')) {
-    cb(null, true);
-  } else {
-    cb(new AppError('Only image types are allowed', 400), false);
-  }
-};
-
-const upload = multer({ storage: multerMemoryStorage, fileFilter: multerFilter });
-
-const uploadProductImages = upload.fields([
+const uploadProductImages = uploadMixOfImages([
   {
     name: 'imageCover',
     maxCount: 1
