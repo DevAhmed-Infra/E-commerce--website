@@ -37,7 +37,13 @@ const createUserValidator = [
     .notEmpty()
     .withMessage('Password is required')
     .isLength({ min: 6 })
-    .withMessage('Password must be at least 6 characters long'),
+    .withMessage('Password must be at least 6 characters long').custom((password, { req }) => {
+      if (password !== req.body.passwordConfirm) {
+        return Promise.reject(new Error('Passwords do not match'));
+      }
+      return true;
+    }),
+  check('passwordConfirm').notEmpty().withMessage('Password confirmation is required'),
   check('role').optional().isIn(['user', 'admin']).withMessage('Role must be either user or admin'),
   check('phone').optional().isMobilePhone().withMessage('Invalid phone number'),
   check('profileImg').optional().isString().withMessage('Profile image must be a string'),
