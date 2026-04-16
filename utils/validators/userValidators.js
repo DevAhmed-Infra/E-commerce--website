@@ -1,6 +1,7 @@
 const { check, body } = require('express-validator');
 const slugify = require('slugify');
 const User = require('../../models/user.model');
+const bcrypt = require('bcryptjs');
 
 const validatorMiddleware = require('../../middlewares/validation');
 
@@ -37,7 +38,8 @@ const createUserValidator = [
     .notEmpty()
     .withMessage('Password is required')
     .isLength({ min: 6 })
-    .withMessage('Password must be at least 6 characters long').custom((password, { req }) => {
+    .withMessage('Password must be at least 6 characters long')
+    .custom((password, { req }) => {
       if (password !== req.body.passwordConfirm) {
         return Promise.reject(new Error('Passwords do not match'));
       }
@@ -86,9 +88,45 @@ const deleteUserValidator = [
   validatorMiddleware
 ];
 
+const changeUserPasswordValidator = [
+  body('currentPassword').notEmpty().withMessage('You must enter current password'),
+
+  body('password')
+    .notEmpty()
+    .withMessage('You must enter a new password')
+    .custom((newPassword, { req }) => {
+
+      // short Note : val or newPassword → the value of the field you are validating
+      // step 1 → find user in your db
+      return User.findById(req.params.id).then((user) => {
+        if (!user) {
+          return Promise.reject(new Error('User not found'));
+        }
+
+        // step 2 → compare between the req.body pass and the old pass
+        return bcrypt.compare(req.body.currentPassword, user.password).then((isMatched) => {
+          if (!isMatched) {
+            return Promise.reject(new Error('Current password is incorrect'));
+          }
+
+          // step 3 → check if the new password = the password confirm
+          if (newPassword !== req.body.passwordConfirm) {
+            return Promise.reject(new Error('Passwords do not match'));
+          }
+
+          return true;
+        });
+      });
+    }),
+
+  body('passwordConfirm').notEmpty().withMessage('You must enter password confirm'),
+  validatorMiddleware
+];
+
 module.exports = {
   getUserValidator,
   deleteUserValidator,
   updateUserValidator,
-  createUserValidator
+  createUserValidator,
+  changeUserPasswordValidator
 };
