@@ -50,7 +50,7 @@ const updateUser = asyncHandler(async (req, res, next) => {
   if (req.body.phone) updateData.phone = req.body.phone;
   if (req.body.profileImg) updateData.profileImg = req.body.profileImg;
   if (req.body.role) updateData.role = req.body.role;
-  
+
   const user = await User.findByIdAndUpdate(id, updateData, {
     new: true,
     runValidators: true

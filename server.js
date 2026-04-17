@@ -11,6 +11,7 @@ const subCategoryRouter = require('./routes/subcategory.router');
 const brandRouter = require('./routes/brand.router');
 const productRouter = require('./routes/product.router');
 const userRouter = require('./routes/user.router');
+const authRouter = require('./routes/auth.router');
 const globalErrorHandler = require('./middlewares/globalErrorHandler');
 const NotFoundHandler = require('./middlewares/notFoundHandler');
 
@@ -29,6 +30,7 @@ app.use('/api/v1/subcategories', subCategoryRouter);
 app.use('/api/v1/brands', brandRouter);
 app.use('/api/v1/products', productRouter);
 app.use('/api/v1/users', userRouter);
+app.use('/api/v1/auth', authRouter);
 
 app.use(NotFoundHandler);
 
