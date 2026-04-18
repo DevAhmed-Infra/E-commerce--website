@@ -2,6 +2,7 @@ const path = require('path');
 
 const express = require('express');
 const morgan = require('morgan');
+const cookieParser = require('cookie-parser');
 
 require('dotenv').config();
 
@@ -28,6 +29,8 @@ if (process.env.NODE_ENV === 'development') {
 
 app.use(express.json());
 app.use(express.static(path.join(__dirname, 'uploads')));
+app.use(cookieParser(process.env.COOKIE_SECRET));
+
 
 app.use('/api/v1/categories', categoryRouter);
 app.use('/api/v1/subcategories', subCategoryRouter);

@@ -7,6 +7,7 @@ const AppError = require('../utils/appError');
 const httpStatus = require('../utils/httpStatus');
 const generateToken = require('../utils/generateToken');
 const { sendEmail } = require('../utils/sendEmail');
+const { setAuthCookies, clearAuthCookies } = require('../utils/cookieAuth');
 
 const signUp = asyncHandler(async (req, res, next) => {
   const { name, email, password, phone, profileImg } = req.body;
@@ -23,10 +24,11 @@ const signUp = asyncHandler(async (req, res, next) => {
 
   user.password = undefined;
 
+  setAuthCookies(res, token);
+
   res.status(201).json({
     status: httpStatus.SUCCESS,
     data: user,
-    token: token
   });
 });
 
@@ -43,14 +45,20 @@ const login = asyncHandler(async (req, res, next) => {
     return next(new AppError('Invalid email or password', 404));
   }
 
+  if (user.active === false) {
+    user.active = true;
+    await user.save();
+  }
+
   const token = generateToken(user._id);
 
   user.password = undefined;
 
+  setAuthCookies(res, token);
+
   res.status(200).json({
     status: httpStatus.SUCCESS,
     data: user,
-    token: token
   });
 });
 
@@ -122,9 +130,11 @@ const verifyPasswordResetCode = asyncHandler(async (req, res, next) => {
 
   await user.save();
 
+  // Do not put resetToken in the auth cookie: it is not a JWT and would break verifyToken.
+  // Clients must send resetToken in the body of POST /resetPassword (httpOnly cookie cannot be read by JS).
   res.status(200).json({
     status: httpStatus.SUCCESS,
-    token: resetToken
+    resetToken
   });
 });
 
@@ -156,9 +166,10 @@ const resetPassword = asyncHandler(async (req, res, next) => {
 
   const authToken = generateToken(user._id);
 
+  setAuthCookies(res, authToken);
+
   res.status(200).json({
     status: httpStatus.SUCCESS,
-    token: authToken
   });
 });
 

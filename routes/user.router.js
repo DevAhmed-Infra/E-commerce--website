@@ -9,6 +9,8 @@ const {
   createUser,
   changeUserPassword,
   updateLoggedUserPassword,
+  deactiveLoggedUser,
+  logout,
   resizeImage,
   uploadProfileImage,
   updateLoggedUser
@@ -24,6 +26,7 @@ const {
 
 const verifyToken = require('../middlewares/verifyToken');
 const restrictedTo = require('../middlewares/restrictedTo');
+const { verify } = require('node:crypto');
 
 const router = express.Router();
 
@@ -41,6 +44,9 @@ router
 
 router.route('/getMe').get(verifyToken, getLoggedUser);
 router.route('/updateMe').patch(verifyToken, updateLoggedUser);
+router.route('/deleteMe').patch(verifyToken, deactiveLoggedUser);
+router.route('/logout').post(verifyToken, logout);
+
 router.route('/changeMyPassword').patch(verifyToken, updateLoggedUserPassword);
 
 router

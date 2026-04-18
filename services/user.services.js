@@ -9,6 +9,7 @@ const { addSlug } = require('../utils/slugHelper');
 const { uploadSingleImage } = require('../middlewares/uploadImage');
 const httpStatus = require('../utils/httpStatus');
 const generateToken = require('../utils/generateToken');
+const { setAuthCookies, clearAuthCookies } = require('../utils/cookieAuth');
 
 const resizeImage = asyncHandler(async (req, res, next) => {
   const fileName = `user-${uuidv4()}-${Date.now()}.jpeg`;
@@ -104,10 +105,11 @@ const updateLoggedUserPassword = asyncHandler(async (req, res, next) => {
 
   const token = generateToken(user._id);
 
+  setAuthCookies(res, token);
+
   res.status(200).json({
     status: httpStatus.SUCCESS,
     data: user,
-    token: token
   });
 });
 
@@ -140,6 +142,21 @@ const createUser = createOne(User, {
   preProcess: addSlug
 });
 
+const deactiveLoggedUser = asyncHandler(async (req, res, next) => {
+  await User.findByIdAndUpdate(req.user.id, { active: false }, { new: true, runValidators: true });
+
+  res.status(204).send();
+});
+
+const logout = asyncHandler(async (req, res, next) => {
+  clearAuthCookies(res);
+
+  res.status(200).json({
+    status: httpStatus.SUCCESS,
+    message: 'Logged out successfully'
+  });
+});
+
 module.exports = {
   getAllUsers,
   getUserById,
@@ -150,6 +167,8 @@ module.exports = {
   changeUserPassword,
   updateLoggedUserPassword,
   updateLoggedUser,
+  deactiveLoggedUser,
+  logout,
   resizeImage,
   uploadProfileImage
 };
