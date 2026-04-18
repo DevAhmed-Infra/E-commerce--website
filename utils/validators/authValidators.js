@@ -41,7 +41,10 @@ const signUpValidator = [
       return true;
     }),
   check('passwordConfirm').notEmpty().withMessage('Password confirmation is required'),
-  check('role').optional().isIn(['user', 'admin']).withMessage('Role must be either user or admin'),
+  check('role')
+    .optional()
+    .isIn(['user', 'admin', 'manager'])
+    .withMessage('Role must be either user, admin or manager'),
   check('phone').optional().isMobilePhone().withMessage('Invalid phone number'),
   check('profileImg').optional().isString().withMessage('Profile image must be a string'),
   check('active').optional().isBoolean().withMessage('Active must be a boolean value'),

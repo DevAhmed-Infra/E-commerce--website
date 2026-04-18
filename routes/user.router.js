@@ -3,6 +3,7 @@ const express = require('express');
 const {
   getAllUsers,
   getUserById,
+  getLoggedUser,
   updateUser,
   deleteUser,
   createUser,
@@ -24,26 +25,35 @@ const restrictedTo = require('../middlewares/restrictedTo');
 
 const router = express.Router();
 
-router.route('/changePassword/:id').patch(changeUserPasswordValidator, changeUserPassword);
-
 router
   .route('/')
-  .get(verifyToken, restrictedTo('admin'), getAllUsers)
+  .get(verifyToken, restrictedTo('admin', 'manager'), getAllUsers)
   .post(
     verifyToken,
-    restrictedTo('admin'),
+    restrictedTo('admin', 'manager'),
     uploadProfileImage,
     resizeImage,
     createUserValidator,
     createUser
   );
 
+router.route('/getMe').get(verifyToken, getLoggedUser);
+
 router
-  .route('/:id')
-  .get(verifyToken, restrictedTo('admin'), getUserValidator, getUserById)
+  .route('/changePassword/:id')
   .patch(
     verifyToken,
-    restrictedTo('admin'),
+    restrictedTo('admin', 'manager'),
+    changeUserPasswordValidator,
+    changeUserPassword
+  );
+
+router
+  .route('/:id')
+  .get(verifyToken, restrictedTo('admin', 'manager'), getUserValidator, getUserById)
+  .patch(
+    verifyToken,
+    restrictedTo('admin', 'manager'),
     uploadProfileImage,
     resizeImage,
     updateUserValidator,
