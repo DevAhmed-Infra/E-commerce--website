@@ -111,11 +111,54 @@ const verifyPasswordResetCode = asyncHandler(async (req, res, next) => {
     return next(new AppError('Reset code invalid or expired', 400));
   }
 
+  const resetToken = crypto.randomBytes(32).toString('hex');
+
+  user.tempResetToken = crypto.createHash('sha256').update(resetToken).digest('hex');
+  user.tempResetTokenExpires = Date.now() + 10 * 60 * 1000;
   user.passwordResetVerified = true;
+
+  user.passwordResetCode = undefined;
+  user.passwordResetExpires = undefined;
+
   await user.save();
 
   res.status(200).json({
-    status: 'Success'
+    status: httpStatus.SUCCESS,
+    token: resetToken
+  });
+});
+
+const resetPassword = asyncHandler(async (req, res, next) => {
+  const { resetToken, newPassword } = req.body;
+
+  const hashedToken = crypto.createHash('sha256').update(resetToken).digest('hex');
+
+  const user = await User.findOne({
+    tempResetToken: hashedToken,
+    tempResetTokenExpires: { $gte: Date.now() }
+  });
+
+  if (!user) {
+    return next(new AppError('Invalid or expired reset token', 400));
+  }
+
+  if (!user.passwordResetVerified) {
+    return next(new AppError('Reset code has not been verified', 400));
+  }
+
+  user.password = newPassword;
+  user.tempResetToken = undefined;
+  user.tempResetTokenExpires = undefined;
+  user.passwordResetVerified = undefined;
+  user.passwordChangedAt = Date.now();
+
+  await user.save();
+
+  const authToken = generateToken(user._id);
+
+  res.status(200).json({
+    status: httpStatus.SUCCESS,
+    token: authToken
   });
 });
 
@@ -123,5 +166,6 @@ module.exports = {
   signUp,
   login,
   forgotPassword,
-  verifyPasswordResetCode
+  verifyPasswordResetCode,
+  resetPassword
 };

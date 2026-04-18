@@ -1,8 +1,9 @@
 const jwt = require('jsonwebtoken');
 const AppError = require('../utils/appError');
 const User = require('../models/user.model');
+const asyncHandler = require('express-async-handler');
 
-const verifyToken = async (req, res, next) => {
+const verifyToken = asyncHandler(async (req, res, next) => {
   let token;
   const authHeader = req.headers.authorization;
 
@@ -30,6 +31,6 @@ const verifyToken = async (req, res, next) => {
 
   req.user = user;
   next();
-};
+});
 
 module.exports = verifyToken;
