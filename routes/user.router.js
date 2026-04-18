@@ -8,6 +8,7 @@ const {
   deleteUser,
   createUser,
   changeUserPassword,
+  updateLoggedUserPassword,
   resizeImage,
   uploadProfileImage
 } = require('../services/user.services');
@@ -38,6 +39,7 @@ router
   );
 
 router.route('/getMe').get(verifyToken, getLoggedUser);
+router.route('/changeMyPassword').patch(verifyToken, updateLoggedUserPassword);
 
 router
   .route('/changePassword/:id')
