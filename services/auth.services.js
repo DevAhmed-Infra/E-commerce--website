@@ -54,15 +54,13 @@ const login = asyncHandler(async (req, res, next) => {
   });
 });
 
-
 const forgotPassword = asyncHandler(async (req, res, next) => {
-  // check if use exists
   const { email } = req.body;
+
   const user = await User.findOne({ email });
   if (!user) {
     return next(new AppError('User is not exist', 404));
   }
-  //generate random reset token/code
   const resetCode = Math.floor(100000 + Math.random() * 900000).toString(); // convert it to string for hashing purposes
   const hashedResetCode = crypto.createHash('sha256').update(resetCode).digest('hex');
 
@@ -71,7 +69,7 @@ const forgotPassword = asyncHandler(async (req, res, next) => {
   user.passwordResetVerified = false;
 
   await user.save();
-  //send reset code via email
+
   try {
     await sendEmail({
       to: email,
@@ -98,13 +96,32 @@ const forgotPassword = asyncHandler(async (req, res, next) => {
     status: httpStatus.SUCCESS,
     message: 'Password reset code sent to email'
   });
+});
 
-  //verify reset code
-  //reset password
+const verifyPasswordResetCode = asyncHandler(async (req, res, next) => {
+  const { resetCode } = req.body;
+  const hashedResetCode = crypto.createHash('sha256').update(resetCode).digest('hex');
+
+  const user = await User.findOne({
+    passwordResetCode: hashedResetCode,
+    passwordResetExpires: { $gte: Date.now() }
+  });
+
+  if (!user) {
+    return next(new AppError('Reset code invalid or expired', 400));
+  }
+
+  user.passwordResetVerified = true;
+  await user.save();
+
+  res.status(200).json({
+    status: 'Success'
+  });
 });
 
 module.exports = {
   signUp,
   login,
-  forgotPassword
+  forgotPassword,
+  verifyPasswordResetCode
 };
