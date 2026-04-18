@@ -2,16 +2,20 @@ const path = require('path');
 
 const express = require('express');
 const morgan = require('morgan');
+
 require('dotenv').config();
 
 const { connectDatabase } = require('./config/db');
+const { verifyEmailConnection } = require('./utils/sendEmail');
 const logger = require('./utils/logger');
+
 const categoryRouter = require('./routes/category.router');
 const subCategoryRouter = require('./routes/subcategory.router');
 const brandRouter = require('./routes/brand.router');
 const productRouter = require('./routes/product.router');
 const userRouter = require('./routes/user.router');
 const authRouter = require('./routes/auth.router');
+
 const globalErrorHandler = require('./middlewares/globalErrorHandler');
 const NotFoundHandler = require('./middlewares/notFoundHandler');
 
@@ -74,17 +78,21 @@ process.on('unhandledRejection', (reason) => {
   }
 });
 
-connectDatabase()
-  .then(() => {
-    server = app.listen(PORT, () => {
+(async () => {
+  try {
+    await connectDatabase();
+    await verifyEmailConnection();
+
+    const normalizedPort = Number(PORT);
+    server = app.listen(Number.isNaN(normalizedPort) ? PORT : normalizedPort, () => {
       logger.info(`app running on port ${PORT}`);
     });
-  })
-  .catch((err) => {
+  } catch (err) {
     logger.fatal('startup_error', {
       message: err.message,
       name: err.name,
       stack: err.stack
     });
     process.exit(1);
-  });
+  }
+})();
