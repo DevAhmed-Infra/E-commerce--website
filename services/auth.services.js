@@ -28,7 +28,7 @@ const signUp = asyncHandler(async (req, res, next) => {
 
   res.status(201).json({
     status: httpStatus.SUCCESS,
-    data: user,
+    data: user
   });
 });
 
@@ -39,10 +39,10 @@ const login = asyncHandler(async (req, res, next) => {
     return next(new AppError('Email and password are required', 400));
   }
 
-  const user = await User.findOne({ email });
+  const user = await User.findOne({ email }).select('+password -role');
 
   if (!user || !(await user.verifyPassword(password))) {
-    return next(new AppError('Invalid email or password', 404));
+    return next(new AppError('Invalid email or password', 401));
   }
 
   if (user.active === false) {
@@ -58,7 +58,16 @@ const login = asyncHandler(async (req, res, next) => {
 
   res.status(200).json({
     status: httpStatus.SUCCESS,
-    data: user,
+    data: user
+  });
+});
+
+const logout = asyncHandler(async (req, res, next) => {
+  clearAuthCookies(res);
+
+  res.status(200).json({
+    status: httpStatus.SUCCESS,
+    message: 'Logged out successfully'
   });
 });
 
@@ -113,7 +122,9 @@ const verifyPasswordResetCode = asyncHandler(async (req, res, next) => {
   const user = await User.findOne({
     passwordResetCode: hashedResetCode,
     passwordResetExpires: { $gte: Date.now() }
-  });
+  }).select(
+    '+passwordResetCode +passwordResetExpires +passwordResetVerified +tempResetToken +tempResetTokenExpires'
+  );
 
   if (!user) {
     return next(new AppError('Reset code invalid or expired', 400));
@@ -146,7 +157,7 @@ const resetPassword = asyncHandler(async (req, res, next) => {
   const user = await User.findOne({
     tempResetToken: hashedToken,
     tempResetTokenExpires: { $gte: Date.now() }
-  });
+  }).select('+passwordResetVerified +tempResetToken +tempResetTokenExpires');
 
   if (!user) {
     return next(new AppError('Invalid or expired reset token', 400));
@@ -169,13 +180,14 @@ const resetPassword = asyncHandler(async (req, res, next) => {
   setAuthCookies(res, authToken);
 
   res.status(200).json({
-    status: httpStatus.SUCCESS,
+    status: httpStatus.SUCCESS
   });
 });
 
 module.exports = {
   signUp,
   login,
+  logout,
   forgotPassword,
   verifyPasswordResetCode,
   resetPassword

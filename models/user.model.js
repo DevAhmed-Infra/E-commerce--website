@@ -23,7 +23,8 @@ const userSchema = new mongoose.Schema(
     password: {
       type: String,
       required: [true, 'Password is required'],
-      minLength: [6, 'Password must be at least 6 characters long']
+      minLength: [6, 'Password must be at least 6 characters long'],
+      select: false
     },
     role: {
       type: String,
@@ -36,12 +37,12 @@ const userSchema = new mongoose.Schema(
       type: Boolean,
       default: true
     },
-    passwordChangedAt: Date,
-    passwordResetCode: String,
-    passwordResetExpires: Date,
-    passwordResetVerified: Boolean,
-    tempResetTokenExpires: Date,
-    tempResetToken: String
+    passwordChangedAt: { type: Date, select: false },
+    passwordResetCode: { type: String, select: false },
+    passwordResetExpires: { type: Date, select: false },
+    passwordResetVerified: { type: Boolean, select: false },
+    tempResetTokenExpires: { type: Date, select: false },
+    tempResetToken: { type: String, select: false }
   },
   {
     timestamps: true

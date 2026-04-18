@@ -9,7 +9,8 @@ const { addSlug } = require('../utils/slugHelper');
 const { uploadSingleImage } = require('../middlewares/uploadImage');
 const httpStatus = require('../utils/httpStatus');
 const generateToken = require('../utils/generateToken');
-const { setAuthCookies, clearAuthCookies } = require('../utils/cookieAuth');
+const { setAuthCookies} = require('../utils/cookieAuth');
+const AppError = require('../utils/appError');
 
 const resizeImage = asyncHandler(async (req, res, next) => {
   const fileName = `user-${uuidv4()}-${Date.now()}.jpeg`;
@@ -70,6 +71,8 @@ const updateUser = asyncHandler(async (req, res, next) => {
     runValidators: true
   });
 
+  if (!user) return next(new AppError('User not found', 404));
+
   res.status(200).json({
     status: httpStatus.SUCCESS,
     data: user
@@ -81,6 +84,7 @@ const changeUserPassword = asyncHandler(async (req, res, next) => {
   const { password } = req.body;
 
   const user = await User.findById(id);
+  if (!user) return next(new AppError('User not found', 404));
 
   user.password = password;
   await user.save();
@@ -109,7 +113,7 @@ const updateLoggedUserPassword = asyncHandler(async (req, res, next) => {
 
   res.status(200).json({
     status: httpStatus.SUCCESS,
-    data: user,
+    data: user
   });
 });
 
@@ -148,15 +152,6 @@ const deactiveLoggedUser = asyncHandler(async (req, res, next) => {
   res.status(204).send();
 });
 
-const logout = asyncHandler(async (req, res, next) => {
-  clearAuthCookies(res);
-
-  res.status(200).json({
-    status: httpStatus.SUCCESS,
-    message: 'Logged out successfully'
-  });
-});
-
 module.exports = {
   getAllUsers,
   getUserById,
@@ -168,7 +163,6 @@ module.exports = {
   updateLoggedUserPassword,
   updateLoggedUser,
   deactiveLoggedUser,
-  logout,
   resizeImage,
   uploadProfileImage
 };

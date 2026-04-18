@@ -1,9 +1,25 @@
 const { check, body } = require('express-validator');
 const slugify = require('slugify');
 const User = require('../../models/user.model');
-const bcrypt = require('bcryptjs');
 
 const validatorMiddleware = require('../../middlewares/validation');
+
+function passwordWithConfirmChain() {
+  return [
+    body('password')
+      .notEmpty()
+      .withMessage('Password is required')
+      .isLength({ min: 6 })
+      .withMessage('Password must be at least 6 characters long')
+      .custom((password, { req }) => {
+        if (password !== req.body.passwordConfirm) {
+          return Promise.reject(new Error('Passwords do not match'));
+        }
+        return true;
+      }),
+    body('passwordConfirm').notEmpty().withMessage('Password confirmation is required')
+  ];
+}
 
 const getUserValidator = [
   check('id').isMongoId().withMessage('Invalid User id format'),
@@ -90,37 +106,31 @@ const deleteUserValidator = [
   validatorMiddleware
 ];
 
-const changeUserPasswordValidator = [
-  body('currentPassword').notEmpty().withMessage('You must enter current password'),
+const changeUserPasswordValidator = [...passwordWithConfirmChain(), validatorMiddleware];
 
-  body('password')
-    .notEmpty()
-    .withMessage('You must enter a new password')
-    .custom((newPassword, { req }) => {
-      // short Note : val or newPassword → the value of the field you are validating
-      // step 1 → find user in your db
-      return User.findById(req.params.id).then((user) => {
-        if (!user) {
-          return Promise.reject(new Error('User not found'));
+const updateLoggedUserPasswordValidator = [...passwordWithConfirmChain(), validatorMiddleware];
+
+const updateLoggedUserValidator = [
+  body('name')
+    .optional()
+    .trim()
+    .isLength({ min: 3 })
+    .withMessage('Too short name')
+    .isLength({ max: 32 })
+    .withMessage('Too long name'),
+  body('email')
+    .optional()
+    .trim()
+    .isEmail()
+    .withMessage('Invalid email address')
+    .custom((val, { req }) =>
+      User.findOne({ email: val }).then((user) => {
+        if (user && user._id.toString() !== req.user._id.toString()) {
+          return Promise.reject(new Error('E-mail already in use'));
         }
-
-        // step 2 → compare between the req.body pass and the old pass
-        return bcrypt.compare(req.body.currentPassword, user.password).then((isMatched) => {
-          if (!isMatched) {
-            return Promise.reject(new Error('Current password is incorrect'));
-          }
-
-          // step 3 → check if the new password = the password confirm
-          if (newPassword !== req.body.passwordConfirm) {
-            return Promise.reject(new Error('Passwords do not match'));
-          }
-
-          return true;
-        });
-      });
-    }),
-
-  body('passwordConfirm').notEmpty().withMessage('You must enter password confirm'),
+      })
+    ),
+  body('phone').optional().isMobilePhone().withMessage('Invalid phone number'),
   validatorMiddleware
 ];
 
@@ -129,5 +139,7 @@ module.exports = {
   deleteUserValidator,
   updateUserValidator,
   createUserValidator,
-  changeUserPasswordValidator
+  changeUserPasswordValidator,
+  updateLoggedUserPasswordValidator,
+  updateLoggedUserValidator
 };

@@ -1,9 +1,18 @@
 const { check } = require('express-validator');
 const slugify = require('slugify');
 const User = require('../../models/user.model');
-const bcrypt = require('bcryptjs');
 
 const validatorMiddleware = require('../../middlewares/validation');
+
+const resetCodeRules = check('resetCode')
+  .notEmpty()
+  .withMessage('Reset code is required')
+  .isLength({ min: 6, max: 6 })
+  .withMessage('Reset code must be 6 digits')
+  .isNumeric()
+  .withMessage('Reset code must be numeric');
+
+const resetTokenRules = check('resetToken').notEmpty().withMessage('Reset token is required');
 
 const signUpValidator = [
   check('name')
@@ -41,10 +50,6 @@ const signUpValidator = [
       return true;
     }),
   check('passwordConfirm').notEmpty().withMessage('Password confirmation is required'),
-  check('role')
-    .optional()
-    .isIn(['user', 'admin', 'manager'])
-    .withMessage('Role must be either user, admin or manager'),
   check('phone').optional().isMobilePhone().withMessage('Invalid phone number'),
   check('profileImg').optional().isString().withMessage('Profile image must be a string'),
   check('active').optional().isBoolean().withMessage('Active must be a boolean value'),
@@ -74,10 +79,29 @@ const forgotPasswordValidator = [
   validatorMiddleware
 ];
 
+const verifyPasswordResetCodeValidator = [resetCodeRules, validatorMiddleware];
 
+const resetPasswordValidator = [
+  resetTokenRules,
+  check('newPassword')
+    .notEmpty()
+    .withMessage('New password is required')
+    .isLength({ min: 6 })
+    .withMessage('Password must be at least 6 characters long')
+    .custom((password, { req }) => {
+      if (password !== req.body.passwordConfirm) {
+        return Promise.reject(new Error('Passwords do not match'));
+      }
+      return true;
+    }),
+  check('passwordConfirm').notEmpty().withMessage('Password confirmation is required'),
+  validatorMiddleware
+];
 
 module.exports = {
   signUpValidator,
   loginValidator,
   forgotPasswordValidator,
+  verifyPasswordResetCodeValidator,
+  resetPasswordValidator
 };
