@@ -82,7 +82,7 @@ const getAllProducts = getAll(Product, {
 
 const getProductById = getOne(Product, {
   modelName: 'Product',
-  populate: ['category', 'subcategory']
+  populate: ['category', 'subcategory', 'reviews']
 });
 
 const createProduct = createOne(Product, {

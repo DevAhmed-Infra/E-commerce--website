@@ -1,20 +1,19 @@
 const { getOne, getAll, updateOne, deleteOne, createOne } = require('./factory');
 const Review = require('../models/review.model');
-const { modelName } = require('../models/user.model');
 
 const getAllReviews = getAll(Review, {
   modelName: 'Review',
-  populate: ['user', 'product']
+  populate: 'user'
 });
 
 const getReviewById = getOne(Review, {
   modelName: 'Review',
-  populate: ['user', 'product']
+  populate: 'user'
 });
 
 const createReview = createOne(Review, {
   modelName: 'Review',
-  populate: ['user', 'product']
+  populate: 'user'
 });
 
 const deleteReview = deleteOne(Review, {
