@@ -16,6 +16,7 @@ const brandRouter = require('./routes/brand.router');
 const productRouter = require('./routes/product.router');
 const userRouter = require('./routes/user.router');
 const authRouter = require('./routes/auth.router');
+const reviewRouter = require('./routes/review.router');
 
 const globalErrorHandler = require('./middlewares/globalErrorHandler');
 const NotFoundHandler = require('./middlewares/notFoundHandler');
@@ -31,13 +32,13 @@ app.use(express.json());
 app.use(express.static(path.join(__dirname, 'uploads')));
 app.use(cookieParser(process.env.COOKIE_SECRET));
 
-
 app.use('/api/v1/categories', categoryRouter);
 app.use('/api/v1/subcategories', subCategoryRouter);
 app.use('/api/v1/brands', brandRouter);
 app.use('/api/v1/products', productRouter);
 app.use('/api/v1/users', userRouter);
 app.use('/api/v1/auth', authRouter);
+app.use('/api/v1/reviews', reviewRouter);
 
 app.use(NotFoundHandler);
 

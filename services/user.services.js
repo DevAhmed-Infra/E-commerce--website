@@ -9,7 +9,7 @@ const { addSlug } = require('../utils/slugHelper');
 const { uploadSingleImage } = require('../middlewares/uploadImage');
 const httpStatus = require('../utils/httpStatus');
 const generateToken = require('../utils/generateToken');
-const { setAuthCookies} = require('../utils/cookieAuth');
+const { setAuthCookies } = require('../utils/cookieAuth');
 const AppError = require('../utils/appError');
 
 const resizeImage = asyncHandler(async (req, res, next) => {
