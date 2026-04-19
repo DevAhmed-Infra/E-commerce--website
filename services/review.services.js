@@ -3,23 +3,27 @@ const Review = require('../models/review.model');
 const { modelName } = require('../models/user.model');
 
 const getAllReviews = getAll(Review, {
-  modelName: 'Review'
+  modelName: 'Review',
+  populate: ['user', 'product']
 });
 
 const getReviewById = getOne(Review, {
-  modelName: 'Review'
+  modelName: 'Review',
+  populate: ['user', 'product']
 });
 
 const createReview = createOne(Review, {
-  modelName: 'Review'
+  modelName: 'Review',
+  populate: ['user', 'product']
 });
 
 const deleteReview = deleteOne(Review, {
-  modelName: 'Review'
+  modelName: 'Review',
 });
 
 const updateReview = updateOne(Review, {
-  modelName: 'Review'
+  modelName: 'Review',
+  populate: 'user'
 });
 
 module.exports = {

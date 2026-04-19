@@ -11,10 +11,7 @@ const deleteOne = (Model, options = {}) => {
     if (!document) {
       return next(new AppError(`${modelName} not found`, 404));
     }
-    res.status(204).json({
-      status: httpStatus.SUCCESS,
-      data: null
-    });
+    res.status(204).send();
   });
 };
 

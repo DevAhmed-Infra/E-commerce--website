@@ -5,10 +5,11 @@ const reviewSchema = new mongoose.Schema(
     title: {
       type: String
     },
-    ratings: {
+    rating: {
       type: Number,
       min: [1, 'min rating is 1'],
-      max: [5, 'max rating is 5 ']
+      max: [5, 'max rating is 5 '],
+      required: [true, 'ratings is required']
     },
     user: {
       type: mongoose.Schema.ObjectId,
