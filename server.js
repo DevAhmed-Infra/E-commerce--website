@@ -1,26 +1,15 @@
+require('dotenv').config();
 const path = require('path');
 
 const express = require('express');
 const morgan = require('morgan');
 const cookieParser = require('cookie-parser');
 
-require('dotenv').config();
-
 const { connectDatabase } = require('./config/db');
 const { verifyEmailConnection } = require('./utils/sendEmail');
 const logger = require('./utils/logger');
 
-const categoryRouter = require('./routes/category.router');
-const subCategoryRouter = require('./routes/subcategory.router');
-const brandRouter = require('./routes/brand.router');
-const productRouter = require('./routes/product.router');
-const userRouter = require('./routes/user.router');
-const authRouter = require('./routes/auth.router');
-const reviewRouter = require('./routes/review.router');
-const wishlistRouter = require('./routes/wishlist.router');
-const addressRouter = require('./routes/address.router');
-const couponRouter = require('./routes/coupon.router');
-
+const mountRoutes = require('./routes/index.Router');
 const globalErrorHandler = require('./middlewares/globalErrorHandler');
 const NotFoundHandler = require('./middlewares/notFoundHandler');
 
@@ -35,19 +24,8 @@ app.use(express.json());
 app.use(express.static(path.join(__dirname, 'uploads')));
 app.use(cookieParser(process.env.COOKIE_SECRET));
 
-app.use('/api/v1/categories', categoryRouter);
-app.use('/api/v1/subcategories', subCategoryRouter);
-app.use('/api/v1/brands', brandRouter);
-app.use('/api/v1/products', productRouter);
-app.use('/api/v1/users', userRouter);
-app.use('/api/v1/auth', authRouter);
-app.use('/api/v1/reviews', reviewRouter);
-app.use('/api/v1/wishlists', wishlistRouter);
-app.use('/api/v1/addresses', addressRouter);
-app.use('/api/v1/coupons', couponRouter);
-
+mountRoutes(app);
 app.use(NotFoundHandler);
-
 app.use(globalErrorHandler);
 
 const PORT = process.env.PORT || 8000;
