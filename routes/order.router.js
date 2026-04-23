@@ -26,7 +26,7 @@ router.post('/webhook-checkout', webhookCheckout);
 
 router.use(verifyToken);
 
-router.get(
+router.post(
   '/checkout-session/:cartId',
   restrictedTo('user'),
   checkoutSessionValidator,

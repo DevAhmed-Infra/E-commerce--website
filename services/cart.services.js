@@ -9,7 +9,6 @@ const Product = require('../models/product.model');
 const AppError = require('../utils/appError');
 const calculateCartTotal = require('../utils/calculateCartTotal');
 
-
 const addToCart = asyncHandler(async (req, res, next) => {
   const { productId, quantity = 1, color } = req.body;
   const userId = req.user._id;
@@ -46,8 +45,6 @@ const addToCart = asyncHandler(async (req, res, next) => {
       });
     }
 
-    product.quantity -= quantity;
-    await product.save();
     cart.set('priceAfterDiscount', undefined);
   }
 

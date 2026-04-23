@@ -4,13 +4,15 @@ const { addSlug } = require('../utils/slugHelper');
 const setIdToBody = require('../middlewares/setIdToBody');
 
 const processSubCategoryData = (data) => {
-  data.category = data.categoryId;
+  if (data.categoryId) {
+    data.category = data.categoryId;
+  }
   return addSlug(data);
 };
 
 const createSubCategory = createOne(SubCategory, {
   preValidate: setIdToBody('categoryId', 'category'),
-  preProcess: processSubCategoryData,
+  preProcess: processSubCategoryData
 });
 
 const getSubCategoryById = getOne(SubCategory, {
@@ -19,12 +21,12 @@ const getSubCategoryById = getOne(SubCategory, {
 });
 
 const getAllSubCategories = getAll(SubCategory, {
-  modelName: 'Subcategory',
+  modelName: 'Subcategory'
 });
 
 const updateSubCategory = updateOne(SubCategory, {
   modelName: 'Subcategory',
-  preProcess: processSubCategoryData,
+  preProcess: processSubCategoryData
 });
 
 const deleteSubCategory = deleteOne(SubCategory, {

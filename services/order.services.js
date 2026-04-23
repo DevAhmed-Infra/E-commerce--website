@@ -224,7 +224,8 @@ const webhookCheckout = asyncHandler(async (req, res) => {
   let event;
 
   try {
-    event = stripe.webhooks.constructEvent(payload, signature, process.env.STRIPE_WEBHOOK_SECRET);
+    const webhookSecret = process.env.STRIPE_WEBHOOK_SECRET || process.env.WEBHOOK_SECRET;
+    event = stripe.webhooks.constructEvent(payload, signature, webhookSecret);
   } catch (err) {
     return res.status(400).send(`Webhook Error: ${err.message}`);
   }
