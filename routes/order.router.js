@@ -6,7 +6,8 @@ const {
   getSpecificOrder,
   getAllOrders,
   updateOrderPaidStatusToPaid,
-  checkoutSession
+  checkoutSession,
+  webhookCheckout
 } = require('../services/order.services');
 
 const {
@@ -20,6 +21,8 @@ const verifyToken = require('../middlewares/verifyToken');
 const restrictedTo = require('../middlewares/restrictedTo');
 
 const router = express.Router();
+
+router.post('/webhook-checkout', webhookCheckout);
 
 router.use(verifyToken);
 

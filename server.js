@@ -4,10 +4,13 @@ const path = require('path');
 const express = require('express');
 const morgan = require('morgan');
 const cookieParser = require('cookie-parser');
+const cors = require('cors');
+const compression = require('compression');
 
 const { connectDatabase } = require('./config/db');
 const { verifyEmailConnection } = require('./utils/sendEmail');
 const logger = require('./utils/logger');
+const stripeWebhookBody = require('./middlewares/stripeWebhookBody');
 
 const mountRoutes = require('./routes/index.Router');
 const globalErrorHandler = require('./middlewares/globalErrorHandler');
@@ -23,7 +26,13 @@ if (process.env.NODE_ENV === 'development') {
  * this is CHAIN OF RESPONSIBILITY DESIGN PATTERN
  */
 
-app.use(express.json());
+app.use(cors());
+app.use(compression());
+app.use(
+  express.json({
+    verify: stripeWebhookBody
+  })
+);
 app.use(express.static(path.join(__dirname, 'uploads')));
 app.use(cookieParser(process.env.COOKIE_SECRET));
 
