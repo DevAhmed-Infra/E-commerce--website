@@ -5,11 +5,13 @@ const {
   filterOrderForLoggedUser,
   getSpecificOrder,
   getAllOrders,
-  updateOrderPaidStatusToPaid
+  updateOrderPaidStatusToPaid,
+  checkoutSession
 } = require('../services/order.services');
 
 const {
   createCashOrderValidator,
+  checkoutSessionValidator,
   getSpecificOrderValidator,
   updateOrderPaidStatusValidator
 } = require('../utils/validators/orderValidators');
@@ -21,6 +23,13 @@ const router = express.Router();
 
 router.use(verifyToken);
 
+router.get(
+  '/checkout-session/:cartId',
+  restrictedTo('user'),
+  checkoutSessionValidator,
+  checkoutSession
+);
+
 router
   .route('/')
   .get(restrictedTo('admin', 'manager', 'user'), filterOrderForLoggedUser, getAllOrders)
@@ -28,12 +37,12 @@ router
 
 router
   .route('/:id')
-  .get(restrictedTo('admin', 'manager'), getSpecificOrderValidator, getSpecificOrder);
+  .get(restrictedTo('admin', 'manager', 'user'), getSpecificOrderValidator, getSpecificOrder);
 
 router
   .route('/:id/pay')
   .patch(
-    restrictedTo('admin', 'manager'),
+    restrictedTo('admin', 'manager', 'user'),
     updateOrderPaidStatusValidator,
     updateOrderPaidStatusToPaid
   );

@@ -1,3 +1,5 @@
+const stripe = require('stripe')(process.env.STRIPE_SECRET);
+
 const asyncHandler = require('express-async-handler');
 
 const Order = require('../models/order.model');
@@ -109,10 +111,79 @@ const updateOrderPaidStatusToPaid = asyncHandler(async (req, res, next) => {
   });
 });
 
+const checkoutSession = asyncHandler(async (req, res, next) => {
+  const cart = await Cart.findOne({
+    _id: req.params.cartId,
+    user: req.user._id
+  });
+  const shippingAddress = req.body.shippingAddress || {};
+
+  if (!cart) {
+    return next(new AppError('No cart found for this user', 404));
+  }
+
+  if (cart.cartItems.length === 0) {
+    return next(new AppError('Cart is empty', 400));
+  }
+
+  // 2) validate stock
+  for (const item of cart.cartItems) {
+    const product = await Product.findById(item.product);
+
+    if (!product) {
+      return next(new AppError(`Product ${item.product} no longer exists`, 404));
+    }
+
+    if (product.quantity < item.quantity) {
+      return next(
+        new AppError(
+          `Insufficient stock for product "${product.title}". Available: ${product.quantity}`,
+          400
+        )
+      );
+    }
+  }
+
+  // 3) calculate total price
+  const totalOrderPrice = cart.priceAfterDiscount || cart.totalCartPrice;
+
+  const session = await stripe.checkout.sessions.create({
+    line_items: [
+      {
+        price_data: {
+          currency: 'egp',
+          unit_amount: totalOrderPrice * 100,
+          product_data: {
+            name: `Order for ${req.user.email}`
+          }
+        },
+        quantity: 1
+      }
+    ],
+    mode: 'payment',
+    success_url: `${req.protocol}://${req.get('host')}/orders`,
+    cancel_url: `${req.protocol}://${req.get('host')}/carts`,
+    customer_email: req.user.email,
+    client_reference_id: String(cart._id),
+    metadata: {
+      details: shippingAddress.details ? String(shippingAddress.details) : '',
+      phone: shippingAddress.phone ? String(shippingAddress.phone) : '',
+      city: shippingAddress.city ? String(shippingAddress.city) : '',
+      postalCode: shippingAddress.postalCode ? String(shippingAddress.postalCode) : ''
+    }
+  });
+
+  res.status(200).json({
+    status: httpStatus.SUCCESS,
+    data: session
+  });
+});
+
 module.exports = {
   createCashOrder,
   filterOrderForLoggedUser,
   getSpecificOrder,
   getAllOrders,
-  updateOrderPaidStatusToPaid
+  updateOrderPaidStatusToPaid,
+  checkoutSession
 };

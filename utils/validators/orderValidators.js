@@ -55,8 +55,11 @@ const getSpecificOrderValidator = [mongoIdParam('id'), validatorMiddleware];
 
 const updateOrderPaidStatusValidator = [mongoIdParam('id'), validatorMiddleware];
 
+const checkoutSessionValidator = [mongoIdParam('cartId'), validatorMiddleware];
+
 module.exports = {
   createCashOrderValidator,
   getSpecificOrderValidator,
-  updateOrderPaidStatusValidator
+  updateOrderPaidStatusValidator,
+  checkoutSessionValidator
 };
