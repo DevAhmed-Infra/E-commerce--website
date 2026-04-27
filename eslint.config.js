@@ -30,7 +30,7 @@ module.exports = [
       'default-case': 'error',
       'no-param-reassign': [
         'error',
-        { props: true, ignorePropertyModificationsFor: ['req', 'res', 'ctx', 'err', 'data'] }
+        { props: true, ignorePropertyModificationsFor: ['req', 'res', 'ctx', 'err', 'data', 'doc'] }
       ],
       'no-plusplus': ['error', { allowForLoopAfterthoughts: true }],
       'no-shadow': [
@@ -85,6 +85,24 @@ module.exports = [
     files: ['utils/logger.js', 'utils/dummyData/seeder.js'],
     rules: {
       'no-console': 'off'
+    }
+  },
+
+  {
+    files: ['**/__tests__/**/*.js'],
+    languageOptions: {
+      globals: {
+        ...globals.jest,
+        describe: 'readonly',
+        it: 'readonly',
+        test: 'readonly',
+        expect: 'readonly',
+        beforeEach: 'readonly',
+        afterEach: 'readonly',
+        beforeAll: 'readonly',
+        afterAll: 'readonly',
+        jest: 'readonly'
+      }
     }
   },
 

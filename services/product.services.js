@@ -86,12 +86,12 @@ const getProductById = getOne(Product, {
 });
 
 const createProduct = createOne(Product, {
-  preProcess: processProductData,
+  preProcess: processProductData
 });
 
 const updateProduct = updateOne(Product, {
   modelName: 'Product',
-  preProcess: processProductData,
+  preProcess: processProductData
 });
 
 const deleteProduct = deleteOne(Product, {

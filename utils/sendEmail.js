@@ -9,7 +9,7 @@ const logger = require('../utils/logger');
 const transporter = nodemailer.createTransport({
   host: emailConfig.SMTP_HOST,
   port: Number(emailConfig.SMTP_PORT),
-  secure:  Number(emailConfig.SMTP_PORT) === 465, // true for 465, false for other ports
+  secure: Number(emailConfig.SMTP_PORT) === 465, // true for 465, false for other ports
   auth: {
     user: emailConfig.SMTP_USER,
     pass: emailConfig.SMTP_PASS
@@ -57,4 +57,4 @@ async function sendEmail({ to, subject, text, html, retries = 3 }) {
   }
 }
 
-module.exports = { sendEmail, verifyEmailConnection};
+module.exports = { sendEmail, verifyEmailConnection };

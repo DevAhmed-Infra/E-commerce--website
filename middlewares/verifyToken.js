@@ -7,6 +7,7 @@ const verifyToken = asyncHandler(async (req, res, next) => {
   let token;
 
   if (req.cookies && req.cookies.token) {
+    // eslint-disable-next-line prefer-destructuring
     token = req.cookies.token;
   } else if (req.headers.authorization && req.headers.authorization.startsWith('Bearer')) {
     token = req.headers.authorization.split(' ')[1];

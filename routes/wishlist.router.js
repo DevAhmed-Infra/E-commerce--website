@@ -12,13 +12,8 @@ const restrictedTo = require('../middlewares/restrictedTo');
 const router = express.Router();
 
 router.use(verifyToken, restrictedTo('user'));
-router
-  .route('/')
-  .post(addProductToWishlist)
-  .get(getLoggedUserWishlist);
+router.route('/').post(addProductToWishlist).get(getLoggedUserWishlist);
 
-router
-  .route('/:product')
-  .delete(removeProductFromWishlist)
+router.route('/:product').delete(removeProductFromWishlist);
 
 module.exports = router;

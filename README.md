@@ -31,7 +31,8 @@
   - [Chain of Responsibility Pattern](#chain-of-responsibility-pattern)
   - [Singleton Pattern](#singleton-pattern)
   - [MVC Pattern](#mvc-pattern-model-view-controller)
-- [11. Setup Instructions](#11-setup-instructions)
+- [11. Testing](#11-testing)
+- [12. Setup Instructions](#12-setup-instructions)
 
 ---
 
@@ -990,7 +991,180 @@ The MVC pattern separates concerns: Models define data structure and validation,
 
 ---
 
-## 11. Setup Instructions
+## 11. Testing
+
+This project uses Jest as the testing framework. The test suite provides comprehensive coverage of services, middleware, and utilities to ensure code quality and reliability.
+
+### Test Framework
+
+- **Jest** - JavaScript testing framework with built-in assertions, mocking, and test runner
+- **Test Coverage** - Current coverage includes services, middleware, and utilities
+
+### Running Tests
+
+Run all tests:
+
+```bash
+npm test
+```
+
+Run tests in watch mode (for development):
+
+```bash
+npm test -- --watch
+```
+
+Run specific test file:
+
+```bash
+npm test -- <test-file-path>
+```
+
+For example:
+
+```bash
+npm test -- __tests__/services/auth.services.test.js
+```
+
+### Test Structure
+
+Tests are organized in the `__tests__` directory with the following structure:
+
+```
+__tests__
+├── middlewares/
+│   ├── restrictedTo.test.js
+│   └── validation.test.js
+├── services/
+│   ├── address.services.test.js
+│   ├── auth.services.test.js
+│   ├── brand.services.test.js
+│   ├── cart.services.test.js
+│   ├── category.services.test.js
+│   ├── coupon.services.test.js
+│   ├── factory.test.js
+│   ├── order.services.test.js
+│   ├── product.services.test.js
+│   ├── review.services.test.js
+│   ├── subcategory.services.test.js
+│   ├── user.services.test.js
+│   └── wishlist.services.test.js
+├── utils/
+│   ├── apiFeatures.test.js
+│   ├── appError.test.js
+│   ├── calculateCartTotal.test.js
+│   ├── generateToken.test.js
+│   └── httpStatus.test.js
+└── setup.js
+```
+
+### Test Coverage
+
+Current test coverage (as of latest run):
+
+- **Total Test Suites**: 20
+- **Total Tests**: 206
+- **Overall Coverage**:
+  - Statements: 48.72%
+  - Branches: 32.66%
+  - Functions: 32.2%
+  - Lines: 50%
+
+**Key areas with high coverage:**
+
+- Services: 85.6% statements
+- Middlewares: 22.83% statements
+- Utils: 70.37% statements
+
+**Fully covered modules (100%):**
+
+- `address.services.js`
+- `auth.services.js`
+- `cart.services.js`
+- `coupon.services.js`
+- `review.services.js`
+- `wishlist.services.js`
+- `apiFeatures.js`
+- `appError.js`
+- `calculateCartTotal.js`
+- `generateToken.js`
+- `httpStatus.js`
+- `restrictedTo.js`
+- `validation.js`
+- `verifyToken.js`
+
+### Test Suites Overview
+
+#### Service Tests
+
+- **Auth Services** - Tests for authentication flows (signup, login, logout, password reset)
+- **User Services** - Tests for user management operations
+- **Cart Services** - Tests for shopping cart functionality
+- **Product Services** - Tests for product CRUD operations
+- **Order Services** - Tests for order creation and management
+- **Address Services** - Tests for address book management
+- **Wishlist Services** - Tests for wishlist functionality
+- **Review Services** - Tests for product review system
+- **Brand/Category/Subcategory Services** - Tests for catalog management
+- **Coupon Services** - Tests for coupon validation and application
+- **Factory Services** - Tests for generic CRUD factory functions
+
+#### Middleware Tests
+
+- **Restricted To** - Tests for role-based access control middleware
+- **Validation** - Tests for request validation middleware
+- **Verify Token** - Tests for JWT verification middleware
+
+#### Utility Tests
+
+- **API Features** - Tests for query filtering, sorting, and pagination
+- **App Error** - Tests for custom error handling
+- **Calculate Cart Total** - Tests for cart total calculation
+- **Generate Token** - Tests for JWT token generation
+- **HTTP Status** - Tests for HTTP status code utilities
+
+### Writing Tests
+
+When adding new features, follow these testing guidelines:
+
+1. **Test file naming**: Use `.test.js` suffix (e.g., `newService.test.js`)
+2. **Mock dependencies**: Use Jest's mocking capabilities to isolate the unit under test
+3. **Test structure**: Organize tests with `describe` blocks for logical grouping
+4. **Coverage**: Aim for high coverage of critical paths and error handling
+
+Example test structure:
+
+```javascript
+describe('Service Name', () => {
+  beforeEach(() => {
+    // Setup mocks and reset state
+  });
+
+  describe('Function Name', () => {
+    it('should do something', () => {
+      // Arrange
+      // Act
+      // Assert
+    });
+
+    it('should handle error case', () => {
+      // Test error handling
+    });
+  });
+});
+```
+
+### Test Configuration
+
+Jest is configured in `package.json` with the following settings:
+
+- **Test environment**: Node
+- **Coverage collection**: Enabled
+- **Test match pattern**: `**/__tests__/**/*.test.js`
+
+---
+
+## 12. Setup Instructions
 
 ### Prerequisites
 
@@ -1055,17 +1229,31 @@ npm run lint
 
 ### Tests
 
-The current `npm test` script is a placeholder and does not run automated tests.
+The project has a comprehensive test suite with 206 tests across 20 test suites covering services, middleware, and utilities.
 
 ```bash
 npm test
 ```
 
+Run tests in watch mode for development:
+
+```bash
+npm test -- --watch
+```
+
+Run specific test file:
+
+```bash
+npm test -- __tests__/services/auth.services.test.js
+```
+
+For detailed testing information, see [Section 11: Testing](#11-testing).
+
 ### Recommended next steps before production
 
-- Add automated unit and integration tests
 - Add environment-specific CORS configuration
 - Add shared-store rate limiting
 - Add CSRF protection if browser cookie auth is exposed cross-site
 - Move email and media processing to async jobs
 - Add real load tests with JMeter, k6, or Artillery
+- Increase test coverage for validators and error handlers

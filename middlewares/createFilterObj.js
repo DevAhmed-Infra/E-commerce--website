@@ -1,4 +1,5 @@
-const createFilterObj = (paramName, fieldName) => { // id , document like category
+const createFilterObj = (paramName, fieldName) => {
+  // id , document like category
   return (req, res, next) => {
     const filterObj = {};
 

@@ -83,7 +83,6 @@ const removeItemFromCartValidator = [
   validatorMiddleware
 ];
 
-
 const updateCartItemQuantityValidator = [
   check('itemId')
     .notEmpty()
@@ -94,7 +93,7 @@ const updateCartItemQuantityValidator = [
       const cart = await Cart.findOne({ user: req.user._id });
       if (!cart) throw new Error('Cart not found');
 
-      const item = cart.cartItems.find((item) => item._id.toString() === val);
+      const item = cart.cartItems.find((cartItem) => cartItem._id.toString() === val);
       if (!item) throw new Error('Item not found in your cart');
 
       req.cartItem = item;
@@ -123,7 +122,6 @@ const updateCartItemQuantityValidator = [
 
   validatorMiddleware
 ];
-
 
 const applyCouponValidator = [
   check('coupon')

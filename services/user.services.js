@@ -51,7 +51,6 @@ const getLoggedUser = asyncHandler(async (req, res, next) => {
   });
 });
 
-
 /**
  * ProtoType Pattern
  */

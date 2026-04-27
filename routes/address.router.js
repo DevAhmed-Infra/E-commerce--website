@@ -12,13 +12,8 @@ const restrictedTo = require('../middlewares/restrictedTo');
 const router = express.Router();
 
 router.use(verifyToken, restrictedTo('user'));
-router
-  .route('/')
-  .post(addAddressToAddresses)
-  .get(getLoggedUserAddresses);
+router.route('/').post(addAddressToAddresses).get(getLoggedUserAddresses);
 
-router
-  .route('/:address')
-  .delete(removeAddressFromAddresses)
+router.route('/:address').delete(removeAddressFromAddresses);
 
 module.exports = router;

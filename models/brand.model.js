@@ -22,7 +22,6 @@ const brandSchema = new mongoose.Schema(
 
 const setImageURL = (doc) => {
   if (doc.image) {
-    // eslint-disable-next-line no-param-reassign
     doc.image = `${process.env.BASE_URL}/brands/${doc.image}`;
   }
 };

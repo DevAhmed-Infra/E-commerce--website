@@ -100,6 +100,7 @@ const forgotPassword = asyncHandler(async (req, res, next) => {
         <p>If you didn't request this, ignore this email.</p>
       `
     });
+    // eslint-disable-next-line no-unused-vars
   } catch (err) {
     user.passwordResetCode = undefined;
     user.passwordResetExpires = undefined;

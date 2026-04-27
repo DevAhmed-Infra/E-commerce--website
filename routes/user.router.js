@@ -46,7 +46,9 @@ router.route('/getMe').get(verifyToken, getLoggedUser);
 router.route('/updateMe').patch(verifyToken, updateLoggedUserValidator, updateLoggedUser);
 router.route('/deleteMe').patch(verifyToken, deactiveLoggedUser);
 
-router.route('/changeMyPassword').patch(verifyToken, updateLoggedUserPasswordValidator, updateLoggedUserPassword);
+router
+  .route('/changeMyPassword')
+  .patch(verifyToken, updateLoggedUserPasswordValidator, updateLoggedUserPassword);
 
 router
   .route('/changePassword/:id')
